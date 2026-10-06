@@ -21,6 +21,10 @@ from urllib.request import Request, urlopen
 from packaging.version import InvalidVersion, Version
 
 _REPOSITORY_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+_VERSION_AT_END_RE = re.compile(
+    r"(?:^|[^A-Za-z0-9])v?[_-]?(\d+(?:\.\d+)+(?:[-._]?(?:final|ga|release))?)$",
+    re.IGNORECASE,
+)
 _API_BASE = "https://api.github.com/repos"
 _TIMEOUT_SECONDS = 5
 _FAILURE_COOLDOWN_SECONDS = 60
@@ -64,6 +68,33 @@ class LatestRelease:
 
     version: str | None
     published_at: str | None
+
+
+def _normalize_release_version(release_tag: object) -> str | None:
+    """Extract a package version from common GitHub tag conventions.
+
+    Repositories use tags such as ``v1.2.3``, ``jackson-core-2.21.5`` and
+    ``netty-4.2.17.Final``. Preserve recognized ecosystem suffixes in the
+    returned version while validating the numeric version portion.
+    """
+    if not release_tag:
+        return None
+    tag = str(release_tag).strip()
+    try:
+        return str(Version(tag))
+    except InvalidVersion:
+        match = _VERSION_AT_END_RE.search(tag)
+        if not match:
+            return None
+        candidate = match.group(1)
+        comparison_candidate = re.sub(
+            r"(?i)(?:[-._]?)(?:final|ga|release)$", "", candidate
+        )
+        try:
+            Version(comparison_candidate)
+        except InvalidVersion:
+            return None
+        return candidate
 
 
 def _get_json(url: str) -> dict:
@@ -129,14 +160,7 @@ def _latest_release(repository: str) -> LatestRelease:
             ) from exc
 
     release_tag = release.get("tag_name")
-    normalized_version = None
-    if release_tag:
-        try:
-            normalized_version = str(Version(str(release_tag).strip()))
-        except InvalidVersion:
-            # A release can have a useful date but a non-package tag. Keep
-            # maintenance analysis working and leave that SBOM version alone.
-            normalized_version = None
+    normalized_version = _normalize_release_version(release_tag)
 
     if not published_date and not normalized_version:
         raise NoReleasesAvailable(
@@ -207,6 +231,15 @@ def is_newer_version(current: str, latest: str) -> bool:
     if not current:
         return bool(latest)
     try:
-        return Version(latest) > Version(current)
+        def comparable(value: str) -> Version:
+            try:
+                return Version(value)
+            except InvalidVersion:
+                stripped = re.sub(
+                    r"(?i)(?:[-._]?)(?:final|ga|release)$", "", value
+                )
+                return Version(stripped)
+
+        return comparable(latest) > comparable(current)
     except InvalidVersion:
         return False

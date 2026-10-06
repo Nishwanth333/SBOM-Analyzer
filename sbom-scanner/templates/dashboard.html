@@ -144,7 +144,7 @@
             <td>
               {% if row.update_available %}
               <span class="text-success fw-semibold">{{ row.latest_version }}</span>
-              {% elif row.latest_version %}
+              {% elif row.latest_version and row.latest_version|string|lower not in ["nan", "none", ""] %}
               {{ row.latest_version }}
               {% else %}
               —

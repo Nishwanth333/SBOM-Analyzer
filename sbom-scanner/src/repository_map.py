@@ -14,6 +14,18 @@ PACKAGE_REPOSITORIES: dict[str, str] = {
     "flask": "pallets/flask",
     "numpy": "numpy/numpy",
     "pandas": "pandas-dev/pandas",
+    # Additional verified upstreams for common packages in the supplied
+    # multi-ecosystem SBOM. Keep ambiguous names (for example, inquirer)
+    # unmapped until the SBOM provides an ecosystem or package URL.
+    "netty-all": "netty/netty",
+    "logrus": "sirupsen/logrus",
+    "cryptography": "pyca/cryptography",
+    "pyyaml": "yaml/pyyaml",
+    "safety": "pyupio/safety",
+    "guava": "google/guava",
+    "lodash": "lodash/lodash",
+    "jackson-core": "FasterXML/jackson-core",
+    "logback-classic": "qos-ch/logback",
 }
 
 _REPOSITORY_SLUG_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
