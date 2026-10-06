@@ -1,0 +1,12 @@
+app_id,library,version,dependency_type,license,last_updated
+APP001,requests,2.25.0,direct,Apache-2.0,2020-11-01
+APP001,flask,2.0.1,direct,BSD-3-Clause,2026-05-01
+APP001,left-pad,1.3.0,transitive,MIT,2016-04-12
+APP001,openssl-py,1.1.0,direct,GPL-3.0,2019-01-15
+APP002,numpy,1.24.0,direct,BSD-3-Clause,2026-04-15
+APP002,pandas,2.1.0,direct,BSD-3-Clause,2026-02-10
+APP002,mystery-lib,0.9.0,transitive,,2015-05-05
+APP003,requests,2.31.0,direct,Apache-2.0,2026-06-01
+APP003,log4j-shim,2.14.1,transitive,LGPL-2.1,2021-09-01
+APP003,pyyaml,5.3.1,direct,MIT,2020-03-18
+APP003,pyyaml,5.3.1,direct,MIT,2020-03-18

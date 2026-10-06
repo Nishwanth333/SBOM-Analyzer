@@ -1,0 +1,11 @@
+app_id,library,version,ground_truth_risk_level
+APP001,requests,2.25.0,MEDIUM
+APP001,flask,2.0.1,LOW
+APP001,left-pad,1.3.0,MEDIUM
+APP001,openssl-py,1.1.0,CRITICAL
+APP002,numpy,1.24.0,LOW
+APP002,pandas,2.1.0,LOW
+APP002,mystery-lib,0.9.0,HIGH
+APP003,requests,2.31.0,LOW
+APP003,log4j-shim,2.14.1,CRITICAL
+APP003,pyyaml,5.3.1,HIGH

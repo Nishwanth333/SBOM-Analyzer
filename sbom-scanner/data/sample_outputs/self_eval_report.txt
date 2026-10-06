@@ -1,0 +1,26 @@
+============================================================
+SELF-EVALUATION REPORT
+============================================================
+Matched rows   : 10
+Unmatched rows : 0
+------------------------------------------------------------
+Accuracy            : 0.6000
+Precision (weighted) : 0.5667
+Recall (weighted)    : 0.6000
+F1 Score (weighted)  : 0.5533
+False Positive Rate  : 0.0000  (RISKY = HIGH/CRITICAL)
+------------------------------------------------------------
+Per-class metrics:
+risk_level  precision  recall  f1_score  support
+       LOW   0.666667     1.0  0.800000        4
+    MEDIUM   0.500000     0.5  0.500000        2
+      HIGH   0.000000     0.0  0.000000        2
+  CRITICAL   1.000000     0.5  0.666667        2
+------------------------------------------------------------
+Confusion matrix:
+               pred_LOW  pred_MEDIUM  pred_HIGH  pred_CRITICAL
+true_LOW              4            0          0              0
+true_MEDIUM           1            1          0              0
+true_HIGH             1            1          0              0
+true_CRITICAL         0            0          1              1
+============================================================

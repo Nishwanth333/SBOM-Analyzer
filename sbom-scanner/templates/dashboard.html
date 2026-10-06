@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% block title %}Risk Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <div class="eyebrow mb-1">Analysis overview</div>
+    <h2 class="fw-bold mb-1">Risk Dashboard</h2>
+    <span class="text-muted small">Report ID: {{ report_id }}</span>
+  </div>
+  <div class="btn-group">
+    <a href="{{ url_for('report_html', report_id=report_id) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-file-earmark-text me-1"></i>
+      View Full Report
+    </a>
+    <a href="{{ url_for('report_pdf', report_id=report_id) }}" class="btn btn-primary">
+      <i class="bi bi-download me-1"></i>
+      Download PDF
+    </a>
+    <a href="{{ url_for('updated_sbom', report_id=report_id) }}" class="btn btn-outline-primary">
+      <i class="bi bi-arrow-up-circle me-1"></i>
+      Download updated SBOM ({{ update_count }})
+    </a>
+  </div>
+</div>
+
+<!-- Summary cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-2-4 col-lg">
+    <div class="card summary-card text-center">
+      <div class="card-body">
+        <div class="summary-value">{{ summary.total_apps }}</div>
+        <div class="summary-label">Applications</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg">
+    <div class="card summary-card text-center">
+      <div class="card-body">
+        <div class="summary-value">{{ summary.total_libraries }}</div>
+        <div class="summary-label">Libraries Scanned</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg">
+    <div class="card summary-card text-center">
+      <div class="card-body">
+        <div class="summary-value">{{ summary.total_flagged }}</div>
+        <div class="summary-label">Flagged</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg">
+    <div class="card summary-card text-center border-danger">
+      <div class="card-body">
+        <div class="summary-value text-danger">{{ summary.critical_count }}</div>
+        <div class="summary-label">Critical</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg">
+    <div class="card summary-card text-center border-warning">
+      <div class="card-body">
+        <div class="summary-value text-warning-emphasis">{{ summary.high_count }}</div>
+        <div class="summary-label">High</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart -->
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="card-title">Average Risk Score by Application</h5>
+    <p class="small mb-3">Focused score scale makes differences easier to compare.</p>
+    <canvas id="riskChart" height="90"></canvas>
+  </div>
+</div>
+
+<!-- Per-app table -->
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="card-title">Applications Ranked by Risk</h5>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Application</th>
+            <th>Avg Risk Score</th>
+            <th>Max Risk Score</th>
+            <th>Libraries</th>
+            <th>Flagged</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in per_app %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td class="fw-semibold">{{ row.app_name }}</td>
+            <td>
+              <span class="badge risk-badge-{{ 'critical' if row.avg_risk_score >= 75 else 'high' if row.avg_risk_score >= 50 else 'medium' if row.avg_risk_score >= 25 else 'low' }}">
+                {{ "%.1f"|format(row.avg_risk_score) }}
+              </span>
+            </td>
+            <td>{{ "%.1f"|format(row.max_risk_score) }}</td>
+            <td>{{ row.total_libraries }}</td>
+            <td>{{ row.flagged_libraries }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Top risky libraries -->
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="card-title">Top Risky Libraries</h5>
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle">
+        <thead>
+          <tr>
+            <th>Application</th>
+            <th>Library</th>
+            <th>Version</th>
+            <th>Latest release</th>
+            <th>Severity</th>
+            <th>Risk Type</th>
+            <th>CVE(s)</th>
+            <th>Score</th>
+            <th>ML Prediction</th>
+            <th>Recommendation</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in top_risky %}
+          <tr>
+            <td>{{ row.app_name }}</td>
+            <td><code>{{ row.library }}</code></td>
+            <td>{{ row.version }}</td>
+            <td>
+              {% if row.update_available %}
+              <span class="text-success fw-semibold">{{ row.latest_version }}</span>
+              {% elif row.latest_version %}
+              {{ row.latest_version }}
+              {% else %}
+              —
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge severity-badge-{{ row.severity|lower }}">{{ row.severity }}</span>
+            </td>
+            <td>{{ row.risk_type.replace('_', ' ')|title }}</td>
+            <td class="small text-muted">{{ row.cve_ids if row.cve_ids and row.cve_ids == row.cve_ids else '—' }}</td>
+            <td>{{ "%.0f"|format(row.risk_score) }}</td>
+            <td>
+              <span class="badge bg-info text-dark">
+                {{ row.ml_prediction }}
+              </span>
+            </td>
+            <td class="small">{{ row.recommendation }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="text-center mb-4">
+  <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Analyze Another SBOM</a>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+  const chartLabels = {{ chart_labels|tojson }};
+  const chartScores = {{ chart_scores|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,12 @@
+{
+  "MIT": {"status": "ALLOWED", "penalty": 0, "reason": "Permissive license; no obligations of concern."},
+  "Apache-2.0": {"status": "ALLOWED", "penalty": 0, "reason": "Permissive license with patent grant."},
+  "BSD-3-Clause": {"status": "ALLOWED", "penalty": 0, "reason": "Permissive license; no obligations of concern."},
+  "BSD-2-Clause": {"status": "ALLOWED", "penalty": 0, "reason": "Permissive license; no obligations of concern."},
+  "LGPL-2.1": {"status": "REVIEW", "penalty": 5, "reason": "Weak copyleft; review dynamic vs static linking."},
+  "LGPL-3.0": {"status": "REVIEW", "penalty": 5, "reason": "Weak copyleft; review dynamic vs static linking."},
+  "GPL-2.0": {"status": "RESTRICTED", "penalty": 20, "reason": "Strong copyleft; may require source disclosure."},
+  "GPL-3.0": {"status": "RESTRICTED", "penalty": 20, "reason": "Strong copyleft; may require source disclosure."},
+  "AGPL-3.0": {"status": "RESTRICTED", "penalty": 25, "reason": "Network copyleft; high legal exposure for SaaS."},
+  "Unknown": {"status": "UNKNOWN", "penalty": 10, "reason": "License not identified; legal risk until resolved."}
+}

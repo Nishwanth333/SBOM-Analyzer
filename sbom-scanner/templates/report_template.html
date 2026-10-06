@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Compliance Report{% endblock %}
+
+{% block extra_head %}
+<style>
+  @media print {
+    .no-print { display: none !important; }
+    .app-navbar { display: none !important; }
+    body { background: white !important; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3 no-print">
+  <h2 class="fw-bold mb-0">Compliance Report</h2>
+  <div class="btn-group">
+    <button class="btn btn-outline-secondary" onclick="window.print()">Print</button>
+    <a href="{{ url_for('report_pdf', report_id=report_id) }}" class="btn btn-primary">Download PDF</a>
+  </div>
+</div>
+
+<div class="mb-4">
+  <h3 class="fw-bold">Software Supply Chain Risk Report</h3>
+  <p class="text-muted">
+    Report ID: {{ report_id }} &nbsp;|&nbsp; Generated: {{ summary.generated_at }}
+  </p>
+</div>
+
+<div class="row g-3 mb-4 text-center">
+  <div class="col">
+    <div class="card"><div class="card-body">
+      <div class="summary-value">{{ summary.total_apps }}</div>
+      <div class="summary-label">Applications</div>
+    </div></div>
+  </div>
+  <div class="col">
+    <div class="card"><div class="card-body">
+      <div class="summary-value">{{ summary.total_libraries }}</div>
+      <div class="summary-label">Libraries</div>
+    </div></div>
+  </div>
+  <div class="col">
+    <div class="card"><div class="card-body">
+      <div class="summary-value">{{ summary.total_flagged }}</div>
+      <div class="summary-label">Flagged</div>
+    </div></div>
+  </div>
+  <div class="col">
+    <div class="card border-danger"><div class="card-body">
+      <div class="summary-value text-danger">{{ summary.critical_count }}</div>
+      <div class="summary-label">Critical</div>
+    </div></div>
+  </div>
+  <div class="col">
+    <div class="card border-warning"><div class="card-body">
+      <div class="summary-value">{{ summary.high_count }}</div>
+      <div class="summary-label">High</div>
+    </div></div>
+  </div>
+</div>
+
+<h5 class="fw-bold mt-4">Per-Application Risk Ranking</h5>
+<table class="table table-bordered table-sm">
+  <thead class="table-dark">
+    <tr>
+      <th>#</th><th>Application</th><th>Avg Risk Score</th><th>Libraries</th><th>Flagged</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in per_app %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ row.application_name }}</td>
+      <td>{{ "%.1f"|format(row.avg_risk_score) }}</td>
+      <td>{{ row.total_libraries }}</td>
+      <td>{{ row.flagged_libraries }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h5 class="fw-bold mt-4">Top Risky Libraries &amp; Remediation Priorities</h5>
+<table class="table table-bordered table-sm">
+  <thead class="table-dark">
+    <tr>
+      <th>Application</th><th>Library</th><th>Version</th><th>Severity</th>
+      <th>Risk Type</th><th>Score</th><th>ML Prediction</th><th>Recommendation</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in top_risky %}
+    <tr>
+      <td>{{ row.application_name }}</td>
+      <td><code>{{ row.library }}</code></td>
+      <td>{{ row.version }}</td>
+      <td><span class="badge severity-badge-{{ row.severity|lower }}">{{ row.severity }}</span></td>
+      <td>{{ row.risk_type.replace('_', ' ')|title }}</td>
+      <td>{{ "%.0f"|format(row.risk_score) }}</td>
+      <td>
+        {% if row.ml_prediction is defined and row.ml_prediction == row.ml_prediction %}
+        <span class="badge bg-info text-dark">{{ row.ml_prediction }}</span>
+        {% else %}
+        <span class="text-muted">—</span>
+        {% endif %}
+      </td>
+      <td>{{ row.recommendation }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

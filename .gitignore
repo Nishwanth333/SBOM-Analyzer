@@ -1,0 +1,29 @@
+# Python bytecode and local caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.uv-cache/
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+sbom-scanner/venv/
+sbom-scanner/.venv/
+sbom-scanner/.venv-tmp/
+
+# Local configuration and secrets
+.env.*
+!.env.example
+
+# Generated uploads and analysis results
+sbom-scanner/uploads/
+
+# Temporary test/runtime directories
+sbom-scanner/tmp*/
+
+# Temporary clean copy for manual GitHub browser uploads
+github-upload/

@@ -1,0 +1,5 @@
+[
+  {"app_id": "APP001", "application_name": "Customer Portal"},
+  {"app_id": "APP002", "application_name": "Internal Analytics Service"},
+  {"app_id": "APP003", "application_name": "Payment Gateway"}
+]

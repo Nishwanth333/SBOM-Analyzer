@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Upload SBOM Files{% endblock %}
+
+{% block content %}
+<header class="mb-4 mb-lg-5">
+  <div class="eyebrow mb-2"><i class="bi bi-activity me-1"></i> Supply chain security workspace</div>
+  <h1 class="page-heading fw-bold mb-2">Know what ships<br class="d-sm-none"> with your software.</h1>
+  <p class="page-intro mb-0">
+        Upload your application inventory and dependency SBOM to generate a
+        clear, ranked view of vulnerability, license, and maintenance risk,
+        plus a separate SBOM copy with newer versions from mapped GitHub releases.
+  </p>
+</header>
+
+<div class="upload-layout">
+  <section>
+
+    {% if error %}
+      <div class="alert alert-warning" role="alert">{{ error }}</div>
+    {% endif %}
+
+    {% if uploaded_files %}
+      <div class="card upload-success mb-4">
+        <div class="card-body">
+          <h5 class="card-title text-success mb-3">
+            <i class="bi bi-check-circle-fill"></i> Upload Successful
+          </h5>
+          <ul class="list-group list-group-flush mb-2">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span><strong>Applications file:</strong> {{ uploaded_files.applications }}</span>
+              <span class="badge bg-success">.json</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span><strong>Dependencies file:</strong> {{ uploaded_files.dependencies }}</span>
+              <span class="badge bg-success">.csv</span>
+            </li>
+          </ul>
+          <div class="text-muted small">Upload ID: {{ uploaded_files.upload_id }}</div>
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="card upload-card">
+      <div class="card-body p-4">
+        <div class="d-flex align-items-center gap-3 mb-4">
+          <span class="stat-chip-icon"><i class="bi bi-cloud-arrow-up"></i></span>
+          <div><h2 class="h5 mb-1">Start a new analysis</h2><div class="small text-muted">Two files, one actionable report</div></div>
+        </div>
+        <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data" novalidate>
+
+          <div class="mb-3">
+            <label for="applications_file" class="form-label fw-semibold">
+              Applications Inventory (JSON)
+            </label>
+            <input class="form-control" type="file" name="applications_file"
+                   id="applications_file" accept=".json" aria-describedby="applications_file_help"
+                   required>
+            <div id="applications_file_help" class="form-text">
+              e.g. applications.json — app metadata, business criticality, owner
+            </div>
+            <div class="invalid-feedback">Please choose a .json applications file.</div>
+          </div>
+
+          <div class="mb-4">
+            <label for="dependencies_file" class="form-label fw-semibold">
+              SBOM Dependencies (CSV)
+            </label>
+            <input class="form-control" type="file" name="dependencies_file"
+                   id="dependencies_file" accept=".csv" aria-describedby="dependencies_file_help"
+                   required>
+            <div id="dependencies_file_help" class="form-text">
+              e.g. sbom_dependencies.csv — library, version, license, last updated
+            </div>
+            <div class="invalid-feedback">Please choose a .csv dependencies file.</div>
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary btn-lg">
+              <i class="bi bi-shield-check me-2"></i>Analyze Supply Chain Risk
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <div class="row mt-3 g-3">
+      <div class="col-12 col-sm-4">
+        <div class="stat-chip">
+          <i class="bi bi-bug"></i>
+          <div class="fw-bold">Vulnerabilities</div>
+          <div class="text-muted small">Cross-checked against known CVEs</div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-4">
+        <div class="stat-chip">
+          <i class="bi bi-file-earmark-check"></i>
+          <div class="fw-bold">Licenses</div>
+          <div class="text-muted small">Flags GPL / incompatible conflicts</div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-4">
+        <div class="stat-chip">
+          <i class="bi bi-wrench-adjustable-circle"></i>
+          <div class="fw-bold">Maintenance</div>
+          <div class="text-muted small">Flags stale, unmaintained libraries</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="upload-aside">
+    <div class="eyebrow mb-3">Built for clarity</div>
+    <h2 class="h3 fw-bold mb-3">From inventory to insight.</h2>
+    <p class="mb-4">See the dependencies that deserve attention first, with risk scores and practical recommendations.</p>
+    <div class="aside-step"><span>1</span><div><strong class="d-block text-white">Add your inventory</strong>Application names and ownership</div></div>
+    <div class="aside-step"><span>2</span><div><strong class="d-block text-white">Include dependencies</strong>Versions, licenses, and update dates</div></div>
+    <div class="aside-step"><span>3</span><div><strong class="d-block text-white">Review and refresh</strong>Download the risk report and updated SBOM copy</div></div>
+    <div class="mt-5 pt-3 small text-muted"><i class="bi bi-lock me-2"></i>Analysis is generated from the files you provide.</div>
+  </aside>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Standard Bootstrap 5 custom-validation pattern: blocks submission and
+  // reveals the .invalid-feedback messages until both files are selected.
+  (() => {
+    const form = document.querySelector(".upload-card form");
+    if (!form) return;
+    form.addEventListener("submit", (event) => {
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      form.classList.add("was-validated");
+    });
+  })();
+</script>
+{% endblock %}
