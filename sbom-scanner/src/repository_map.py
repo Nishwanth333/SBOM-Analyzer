@@ -26,6 +26,15 @@ PACKAGE_REPOSITORIES: dict[str, str] = {
     "lodash": "lodash/lodash",
     "jackson-core": "FasterXML/jackson-core",
     "logback-classic": "qos-ch/logback",
+    "nodemon": "remy/nodemon",
+    "resty": "go-resty/resty",
+    "sqlalchemy": "sqlalchemy/sqlalchemy",
+    "mux": "gorilla/mux",
+    "protobuf-go": "protocolbuffers/protobuf-go",
+    "assertj-core": "assertj/assertj",
+    "micrometer-core": "micrometer-metrics/micrometer",
+    "moment": "moment/moment",
+    "jetty-server": "jetty/jetty.project",
 }
 
 # Use the canonical PyPI project name only for packages identified here.
@@ -35,6 +44,7 @@ PYPI_PACKAGES: dict[str, str] = {
     "cryptography": "cryptography",
     "pyyaml": "PyYAML",
     "safety": "safety",
+    "sqlalchemy": "SQLAlchemy",
 }
 
 _REPOSITORY_SLUG_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
