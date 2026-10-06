@@ -37,16 +37,6 @@ PACKAGE_REPOSITORIES: dict[str, str] = {
     "jetty-server": "jetty/jetty.project",
 }
 
-# Use the canonical PyPI project name only for packages identified here.
-# This is a fallback for projects that publish packages to PyPI but do not
-# create GitHub Release objects (for example, pyca/cryptography).
-PYPI_PACKAGES: dict[str, str] = {
-    "cryptography": "cryptography",
-    "pyyaml": "PyYAML",
-    "safety": "safety",
-    "sqlalchemy": "SQLAlchemy",
-}
-
 _REPOSITORY_SLUG_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 _GITHUB_URL_RE = re.compile(
     r"^(?:https?://)?(?:www\.)?github\.com/([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)(?:\.git|/.*)?/?$",
@@ -78,7 +68,3 @@ def resolve_repository(library: str, repository: str | None = None) -> str | Non
 
     return PACKAGE_REPOSITORIES.get(str(library).strip().casefold())
 
-
-def resolve_pypi_package(library: str) -> str | None:
-    """Return a curated PyPI project name without guessing from a library name."""
-    return PYPI_PACKAGES.get(str(library).strip().casefold())

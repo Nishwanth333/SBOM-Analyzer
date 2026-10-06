@@ -174,10 +174,10 @@ def load_dependencies(path: str | Path) -> pd.DataFrame:
     Load sbom_dependencies.csv into a validated, cleaned DataFrame.
 
     Expected columns: app_id, library, version, dependency_type, and
-    license. `last_updated` and repository metadata columns such as
-    `github_repo`, `repository`, `repository_url`, and `source_url` are
-    optional maintenance inputs; an absent last_updated is treated as
-    unknown if no GitHub date can be resolved.
+    license. `last_updated`, manually supplied `latest_version`, and
+    repository metadata columns such as `github_repo`, `repository`,
+    `repository_url`, and `source_url` are optional inputs. An absent
+    `last_updated` is unknown if no GitHub date can be resolved.
 
     Cleaning performed:
     - Whitespace stripped from string columns.
@@ -205,6 +205,12 @@ def load_dependencies(path: str | Path) -> pd.DataFrame:
         # on astype(str) turning them into the literal string "nan".
         df[col] = df[col].fillna("").astype(str).str.strip()
         df[col] = df[col].replace({"nan": "", "None": ""})
+
+    if "latest_version" in df.columns:
+        df["latest_version"] = (
+            df["latest_version"].fillna("").astype(str).str.strip()
+            .replace({"nan": "", "None": ""})
+        )
 
     before = len(df)
     df = df.drop_duplicates(keep="first").reset_index(drop=True)

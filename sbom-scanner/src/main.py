@@ -58,7 +58,6 @@ from . import vuln_matcher
 from . import maintenance
 from . import license_checker
 from . import github_updater
-from . import package_registry
 from . import repository_map
 
 logger = logging.getLogger(__name__)
@@ -106,7 +105,17 @@ def _score_one_row(
     )
     last_updated = row["last_updated"]
     existing_date = last_updated
-    latest_version = None
+    manual_latest_version = row.get("latest_version")
+    if (
+        manual_latest_version is None
+        or pd.isna(manual_latest_version)
+        or str(manual_latest_version).strip().lower() in {"", "nan", "none"}
+    ):
+        latest_version = None
+        latest_version_source = None
+    else:
+        latest_version = str(manual_latest_version).strip()
+        latest_version_source = "existing SBOM/data"
     update_available = False
     repository_metadata = None
     for column in ("github_repo", "repository", "repository_url", "source_url"):
@@ -141,25 +150,8 @@ def _score_one_row(
             release_version_source = "GitHub" if release_version else None
         except github_updater.GitHubLookupError as exc:
             logger.warning(
-                "GitHub release lookup failed for %s (%s); trying an available package registry fallback",
+                "GitHub release lookup failed for %s (%s); retaining existing SBOM/data version and maintenance date",
                 repository,
-                exc,
-            )
-
-    pypi_project = repository_map.resolve_pypi_package(str(row["library"]))
-    if pypi_project and (not release_version or not release_date):
-        try:
-            registry_release = package_registry.get_latest_pypi_release(pypi_project)
-            if not release_version and registry_release.version:
-                release_version = registry_release.version
-                release_version_source = "PyPI"
-            if not release_date and registry_release.published_at:
-                release_date = registry_release.published_at
-                release_date_source = "PyPI"
-        except package_registry.RegistryLookupError as exc:
-            logger.warning(
-                "PyPI lookup failed for %s (%s); retaining existing SBOM/data fallback",
-                pypi_project,
                 exc,
             )
 
@@ -181,12 +173,15 @@ def _score_one_row(
 
     if release_version:
         latest_version = release_version
+        latest_version_source = release_version_source
+
+    if latest_version:
         update_available = github_updater.is_newer_version(
             str(row["version"]), latest_version
         )
         logger.info(
             "Latest package version source=%s library=%s installed=%s latest=%s update_available=%s",
-            release_version_source,
+            latest_version_source,
             row["library"],
             row["version"],
             latest_version,
@@ -279,7 +274,6 @@ def analyze_all(
     # Refresh release dates for every new upload/analysis. The updater still
     # caches within this run so repeated app dependencies share one API call.
     github_updater.clear_release_cache()
-    package_registry.clear_release_cache()
     weights = weights or scorer.RiskWeights()
 
     logger.info("Loading input files...")
