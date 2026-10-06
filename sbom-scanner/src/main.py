@@ -198,6 +198,11 @@ def _score_one_row(
             "age_years": maintenance_result.age_years,
         },
         weights=weights,
+        version_context={
+            "installed_version": str(row["version"]),
+            "latest_version": latest_version,
+            "update_available": update_available,
+        },
     )
 
     return {

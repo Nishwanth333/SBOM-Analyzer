@@ -157,9 +157,25 @@ def _build_recommendation(
     vuln_context: dict,
     license_context: dict,
     maintenance_context: dict,
+    version_context: dict | None = None,
 ) -> str:
     """Compose a single human-readable, actionable recommendation string."""
     actions: list[str] = []
+
+    version_context = version_context or {}
+    if version_context.get("update_available"):
+        current_version = version_context.get("installed_version")
+        latest_version = version_context.get("latest_version")
+        if latest_version:
+            if current_version:
+                actions.append(
+                    f"upgrade from {current_version} to {latest_version} "
+                    "(latest upstream release)"
+                )
+            else:
+                actions.append(
+                    f"upgrade to {latest_version} (latest upstream release)"
+                )
 
     cve_id = vuln_context.get("cve_id")
     if cve_id:
@@ -207,6 +223,7 @@ def compute_risk_score(
     license_context: dict,
     maintenance_context: dict,
     weights: RiskWeights | None = None,
+    version_context: dict | None = None,
 ) -> ScoreResult:
     """
     Combine component penalties into a final risk score, level, type,
@@ -225,7 +242,11 @@ def compute_risk_score(
     risk_type = _dominant_risk_type(weighted_vuln, weighted_license, weighted_maintenance)
     flags = _build_flags(vuln_context, license_context, maintenance_context)
     recommendation = _build_recommendation(
-        risk_level, vuln_context, license_context, maintenance_context
+        risk_level,
+        vuln_context,
+        license_context,
+        maintenance_context,
+        version_context,
     )
 
     return ScoreResult(
