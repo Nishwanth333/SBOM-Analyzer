@@ -58,6 +58,7 @@ from . import vuln_matcher
 from . import maintenance
 from . import license_checker
 from . import github_updater
+from . import package_registry
 from . import repository_map
 
 logger = logging.getLogger(__name__)
@@ -127,53 +128,69 @@ def _score_one_row(
             exc,
         )
 
+    release_date = None
+    release_version = None
+    release_date_source = None
+    release_version_source = None
     if repository:
         try:
             release = github_updater.get_latest_release(str(repository).strip())
-            if release.published_at:
-                last_updated = release.published_at
-                logger.info(
-                    "Maintenance date source=GitHub repository=%s library=%s version=%s date=%s",
-                    repository,
-                    row["library"],
-                    row["version"],
-                    last_updated,
-                )
-            if release.version:
-                latest_version = release.version
-                update_available = github_updater.is_newer_version(
-                    str(row["version"]), latest_version
-                )
-                logger.info(
-                    "Latest package version source=GitHub repository=%s library=%s installed=%s latest=%s update_available=%s",
-                    repository,
-                    row["library"],
-                    row["version"],
-                    latest_version,
-                    update_available,
-                )
-            if not release.published_at:
-                logger.info(
-                    "Maintenance date source=existing SBOM/data library=%s version=%s date=%s (GitHub release had no publication date)",
-                    row["library"],
-                    row["version"],
-                    existing_date,
-                )
+            release_date = release.published_at
+            release_version = release.version
+            release_date_source = "GitHub" if release_date else None
+            release_version_source = "GitHub" if release_version else None
         except github_updater.GitHubLookupError as exc:
-            # Preserve the established CSV date and UNKNOWN-date behavior when
-            # GitHub cannot provide a release date.
             logger.warning(
-                "GitHub maintenance lookup failed for %s (%s); using existing SBOM/data date=%s",
+                "GitHub release lookup failed for %s (%s); trying an available package registry fallback",
                 repository,
                 exc,
-                existing_date,
             )
+
+    pypi_project = repository_map.resolve_pypi_package(str(row["library"]))
+    if pypi_project and (not release_version or not release_date):
+        try:
+            registry_release = package_registry.get_latest_pypi_release(pypi_project)
+            if not release_version and registry_release.version:
+                release_version = registry_release.version
+                release_version_source = "PyPI"
+            if not release_date and registry_release.published_at:
+                release_date = registry_release.published_at
+                release_date_source = "PyPI"
+        except package_registry.RegistryLookupError as exc:
+            logger.warning(
+                "PyPI lookup failed for %s (%s); retaining existing SBOM/data fallback",
+                pypi_project,
+                exc,
+            )
+
+    if release_date:
+        last_updated = release_date
+        logger.info(
+            "Maintenance date source=%s library=%s date=%s",
+            release_date_source,
+            row["library"],
+            release_date,
+        )
     else:
         logger.info(
-            "Maintenance date source=existing SBOM/data library=%s version=%s date=%s (no known GitHub repository)",
+            "Maintenance date source=existing SBOM/data library=%s version=%s date=%s",
             row["library"],
             row["version"],
             existing_date,
+        )
+
+    if release_version:
+        latest_version = release_version
+        update_available = github_updater.is_newer_version(
+            str(row["version"]), latest_version
+        )
+        logger.info(
+            "Latest package version source=%s library=%s installed=%s latest=%s update_available=%s",
+            release_version_source,
+            row["library"],
+            row["version"],
+            latest_version,
+            update_available,
         )
 
     maintenance_result = maintenance.assess_maintenance(
@@ -262,6 +279,7 @@ def analyze_all(
     # Refresh release dates for every new upload/analysis. The updater still
     # caches within this run so repeated app dependencies share one API call.
     github_updater.clear_release_cache()
+    package_registry.clear_release_cache()
     weights = weights or scorer.RiskWeights()
 
     logger.info("Loading input files...")
