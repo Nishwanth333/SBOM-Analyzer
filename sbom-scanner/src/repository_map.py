@@ -35,6 +35,8 @@ PACKAGE_REPOSITORIES: dict[str, str] = {
     "micrometer-core": "micrometer-metrics/micrometer",
     "moment": "moment/moment",
     "jetty-server": "jetty/jetty.project",
+    "log4j-core": "apache/logging-log4j2",
+    "log4j-api": "apache/logging-log4j2",
 }
 
 _REPOSITORY_SLUG_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
@@ -67,4 +69,3 @@ def resolve_repository(library: str, repository: str | None = None) -> str | Non
         )
 
     return PACKAGE_REPOSITORIES.get(str(library).strip().casefold())
-
