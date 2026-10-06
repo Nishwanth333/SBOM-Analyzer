@@ -37,6 +37,11 @@ PACKAGE_REPOSITORIES: dict[str, str] = {
     "jetty-server": "jetty/jetty.project",
     "log4j-core": "apache/logging-log4j2",
     "log4j-api": "apache/logging-log4j2",
+    "gson": "google/gson",
+    "mockito-core": "mockito/mockito",
+    "hibernate-validator": "hibernate/hibernate-validator",
+    "werkzeug": "pallets/werkzeug",
+    "pyjwt": "jpadilla/pyjwt",
 }
 
 _REPOSITORY_SLUG_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
